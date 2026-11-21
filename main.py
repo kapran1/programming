@@ -1,83 +1,86 @@
 class Polynomial:
-    def __init__(self, *coefficients):
-        self.coefficients = []                      # здесь будем хранить коэффициенты
+    def __init__(self, *coefficients): # Создает многочлен
+        self.coefficients = []
 
-        if len(coefficients) == 1:                  # передан один аргумент
-            data = coefficients[0]                  # берём его
+        if len(coefficients) == 1:
+            data = coefficients[0]
 
-            if isinstance(data, Polynomial):        # это другой многочлен?
-                self.coefficients = list(data.coefficients)  # копируем его список
+            if isinstance(data, Polynomial):
+                self.coefficients = list(data.coefficients)
 
-            elif isinstance(data, list):            # это список?
-                self.coefficients = list(data)      # копируем список
+            elif isinstance(data, list):
+                self.coefficients = list(data)
 
-            elif isinstance(data, dict):            # это словарь {степень: коэффициент}?
-                if data:                            # словарь не пустой
-                    max_pow = max(data)             # max по словарю берёт наибольший ключ (степень)
-                    self.coefficients = [0] * (max_pow + 1)  # заготовка из нулей
+            elif isinstance(data, dict):
+                if data:
+                    max_pow = max(data)
+                    self.coefficients = [0] * (max_pow + 1)
                     for power in data:
-                        self.coefficients[power] = data[power]  # ставим коэффициент на свою степень
+                        self.coefficients[power] = data[power]
                 else:
-                    self.coefficients = [0]         # пустой словарь, значит многочлен 0
+                    self.coefficients = [0]
 
-            else:                                   # просто число, например Polynomial(5)
+            else:
                 self.coefficients = [data]
 
-        else:                                       # аргументов несколько (или ноль)
-            self.coefficients = list(coefficients)  # кортеж превращаем в список
+        else:
+            self.coefficients = list(coefficients)
 
-        if not self.coefficients:                   # если список всё ещё пустой
-            self.coefficients = [0]                 # то это многочлен 0
+        while len(self.coefficients) > 1 and self.coefficients[-1] == 0:
+            self.coefficients.pop()
+
+        if not self.coefficients:
+            self.coefficients = [0]
 
     def __repr__(self):
-        return f"Polynomial {self.coefficients}"   # список кэфов
-    def __str__(self):
-        result = ""                                   # сюда будем дописывать члены многочлена
+        return f"Polynomial {self.coefficients}" # Возращает строку для разработчика 
 
-        # идём от старшей степени к 0: range(старт, стоп, шаг)
-        # старт = len - 1 (последний индекс), стоп = -1 (до 0 включительно), шаг = -1 (назад)
+    def __str__(self): # Красивая записать вида многочлена для пользователя
+        result = ""
+
         for power in range(len(self.coefficients) - 1, -1, -1):
-            coef = self.coefficients[power]           # коэффициент при x^power
+            coef = self.coefficients[power]
 
-            if coef == 0:                             # нулевые члены пропускаем
+            if coef == 0:
                 continue
 
-            sign = "-" if coef < 0 else "+"           # знак запоминаем отдельно
-            abs_coef = abs(coef)                      # дальше работаем с модулем числа
+            sign = "-" if coef < 0 else "+"
+            abs_coef = abs(coef)
 
-            if power == 0:                            # свободный член (без x)
-                body = str(abs_coef)                  # просто число: 7
+            if power == 0:
+                body = str(abs_coef)
             else:
-                if abs_coef == 1:                     # коэффициент 1 не пишем
+                if abs_coef == 1:
                     coef_str = ""
                 else:
-                    coef_str = str(abs_coef)          # иначе пишем число: 4
+                    coef_str = str(abs_coef)
 
-                if power == 1:                        # первая степень: без "^1"
-                    body = coef_str + "x"             # 4x или x
+                if power == 1:
+                    body = coef_str + "x"
                 else:
-                    body = f"{coef_str}x^{power}"     # 4x^3 или x^3
+                    body = f"{coef_str}x^{power}"
 
-            if result == "":                          # это самый первый записанный член
+            if result == "":
                 if sign == "-":
-                    result = "-" + body               # у первого члена минус липнет: -x^2
+                    result = "-" + body
                 else:
-                    result = body                     # а плюс в начале не нужен
-            else:                                     # не первый член
-                result += f" {sign} {body}"           # добавляем " + 2x" или " - 7"
+                    result = body
+            else:
+                result += f" {sign} {body}"
 
-        if result == "":                              # ни один член не добавился
-            return "0"                                # значит многочлен нулевой
+        if result == "":
+            return "0"
 
         return result
 
-    def __eq__(self, other):
-        if isinstance(other, (int,float)):
+    def __eq__(self, other): # Сравнение многочленов
+        if isinstance(other, (int, float)):
             other = Polynomial(other)
         if not isinstance(other, Polynomial):
             return False
-        return self.coefficients == other.coefficients  # Сравнение многочленов
-    def __add__(self,other):
+        return self.coefficients == other.coefficients
+
+    def __add__(self, other): # Сложение многочленов
         if isinstance(other, (int, float)):
             other = Polynomial(other)
         max_len = max(len(self.coefficients), len(other.coefficients))
@@ -87,33 +90,61 @@ class Polynomial:
             c1 = self.coefficients[i] if i < len(self.coefficients) else 0
             c2 = other.coefficients[i] if i < len(other.coefficients) else 0
             new_coef[i] = c1 + c2
-        return Polynomial(new_coef) # Сложение многочленов
-    def __radd__(self, other):
+        return Polynomial(new_coef)
+
+    def __radd__(self, other): # Сложение многочлена с числом
         return self.__add__(other)
-    def __neg__(self):
+
+    def __neg__(self): # Возвращает многочлен с противоположными коэффициентами
         new_coef = [-c for c in self.coefficients]
         return Polynomial(new_coef)
-    def __sub__(self, other):
-        pass
-    def __rsub__(self, other):
-        pass
-    def __call__(self, x):
-        pass
-    def degree(self):
-        pass
-    def der(self, d=1):
-        pass
-    def __mul__(self, other):
-        pass
-    def __rmul__(self, other):
-        pass
-    def __iter__(self):
-        pass
-    def __next__(self):
-        pass
 
-# --- ПРОСТОЙ ТЕСТ __neg__ ---
-p_neg_test = Polynomial(-2, 4, 3)  # 3x^2 + 4x - 2
+    def __sub__(self, other): # Вычитание многочленов
+        return self + (-other)
 
-print("Исходный многочлен:", p_neg_test)  # Покажет: 3x^2 + 4x - 2
-print("С унарным минусом: ", -p_neg_test) # Должно напечатать: -3x^2 - 4x + 2
+    def __rsub__(self, other):# Вычитание числа из многочлена
+        return (-self) + other
+
+    def __call__(self, x): # Вычисляет значение многочлена в точке x
+        result = 0
+        for power in range(len(self.coefficients)):
+            result += self.coefficients[power] * x ** power
+        return result
+
+    def degree(self): # Возвращает степень многочлена
+        return len(self.coefficients) - 1
+
+    def der(self, d=1): # Возвращает производную многочлена d-го порядка
+        coefs = list(self.coefficients)
+        for _ in range(d):
+            coefs = [i * coefs[i] for i in range(1, len(coefs))]
+        return Polynomial(coefs)
+
+    def __mul__(self, other): # Умножение многочленов
+        if isinstance(other, (int, float)):
+            other = Polynomial(other)
+        new_coef = [0] * (len(self.coefficients) + len(other.coefficients) - 1)
+
+        for i in range(len(self.coefficients)):
+            for j in range(len(other.coefficients)):
+                new_coef[i + j] += self.coefficients[i] * other.coefficients[j]
+        return Polynomial(new_coef)
+
+    def __rmul__(self, other): #    
+        return self.__mul__(other)
+
+    def __iter__(self): # Возвращает итератор для многочлена
+        self.index = 0
+        return self
+
+    def __next__(self): # Возвращает следующую пару (степень, коэффициент) многочлена
+        if self.index >= len(self.coefficients):
+            raise StopIteration
+        pair = (self.index, self.coefficients[self.index])
+        self.index += 1
+        return pair
+
+print(repr(Polynomial(1, 2, 3)))
+print(Polynomial({0: 1, 1: 2, 2: 3}))
+print(Polynomial(5))
+print(5.5 * Polynomial())
